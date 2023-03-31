@@ -1,0 +1,488 @@
+<html>
+  <head>
+    <title>Your Program Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script
+      type="text/javascript"
+      src="https://static.codehs.com/gulp/80550f5fc4071985bfef352d04f005ca3de931d3/chs-js-lib/chs.js"
+    ></script>
+    <style>
+      canvas {
+        border: 1px solid black;
+        display: inline-block;
+        vertical-align: top;
+      }
+      /* pre {
+        border: 1px solid black;
+        display: inline-block;
+        width: 400px;
+        height: 500px;
+        background-color: #f5f5f5;
+      } */
+    </style>
+  </head>
+  <body>
+    <h1>Wrecking Bricks</h1>
+    <canvas width="400" height="500" class="codehs-editor-canvas"></canvas>
+    <pre id="console"></pre>
+
+    <script>
+      window.onload = function () {
+        /* Constants for bricks */
+        var NUM_ROWS = 8;
+        var BRICK_TOP_OFFSET = 10;
+        var BRICK_SPACING = 2;
+        var NUM_BRICKS_PER_ROW = 10;
+        var BRICK_HEIGHT = 10;
+        var SPACE_FOR_BRICKS =
+          getWidth() - (NUM_BRICKS_PER_ROW + 1) * BRICK_SPACING;
+        var BRICK_WIDTH = SPACE_FOR_BRICKS / NUM_BRICKS_PER_ROW;
+
+        /* Constants for ball and paddle */
+        var PADDLE_WIDTH = 80;
+        var PADDLE_WIDTH_DIVIDED = PADDLE_WIDTH / 2;
+        var PADDLE_HEIGHT = 20;
+        var PADDLE_OFFSET = 15;
+        var PADDLE_HEIGHT_OFFSET = PADDLE_HEIGHT + PADDLE_OFFSET;
+        var PADDLE_HEIGHT_OFFSET_MINUS = PADDLE_HEIGHT_OFFSET - 5;
+
+        var BALL_RADIUS = 15;
+
+        var pad;
+        var padTwo;
+        var padFour;
+        var padFive;
+        var elem;
+        var score = 0;
+        var txt;
+
+        var ball;
+        var ballTwo;
+        var dx = Randomizer.nextInt(-6, 6);
+        var dy = 6;
+        var counter = 0;
+        var counterTwo = 0;
+        var winCount = 0;
+        var MAX_CIRCLES = 1000;
+        var MAX_RADIUS = 100;
+
+        var ballChain;
+        var settingSun;
+        var eight = getWidth() / 80;
+        var completionBar;
+        var randomG = Color.randomRed();
+        var randomCheat = Randomizer.nextInt(1, 20);
+
+        function start() {
+          backgroundChange();
+
+          createBricks(Color.randomRed());
+
+          pad = new Rectangle(PADDLE_WIDTH, PADDLE_HEIGHT);
+          pad.setPosition(
+            getWidth() / 2 - BRICK_WIDTH,
+            getHeight() - PADDLE_HEIGHT - PADDLE_OFFSET
+          );
+          pad.setColor("#DAA520");
+          add(pad);
+
+          padTwo = new Rectangle(
+            PADDLE_WIDTH / 2,
+            PADDLE_HEIGHT + PADDLE_HEIGHT
+          );
+          padTwo.setPosition(
+            getWidth() / 2 - BRICK_WIDTH / 2,
+            getHeight() - PADDLE_HEIGHT - PADDLE_OFFSET - PADDLE_HEIGHT
+          );
+          padTwo.setColor("#B8860B");
+          add(padTwo);
+
+          padFour = new Rectangle(
+            (PADDLE_WIDTH / 2 / 3) * 2,
+            PADDLE_HEIGHT + PADDLE_HEIGHT - 13
+          );
+          padFour.setPosition(
+            getWidth() / 2 - BRICK_WIDTH / 2 + 6.5,
+            getHeight() - PADDLE_HEIGHT - PADDLE_OFFSET - PADDLE_HEIGHT
+          );
+          padFour.setColor("#00BFFF");
+          add(padFour);
+
+          padFive = new Rectangle(PADDLE_WIDTH / 2 / 4, PADDLE_HEIGHT * 2);
+          padFive.setPosition(
+            getWidth() / 2 - PADDLE_WIDTH / 2 / 3 / 2,
+            getHeight() -
+              PADDLE_HEIGHT -
+              PADDLE_OFFSET -
+              PADDLE_HEIGHT -
+              PADDLE_HEIGHT * 2
+          );
+          padFive.setColor("#696969");
+          add(padFive);
+
+          ball = new Circle(BALL_RADIUS);
+          ball.setPosition(getWidth() / 2, getHeight() / 2);
+          ball.setColor("#C0C0C0");
+          add(ball);
+
+          ballChain = new Line(
+            padFive.getX() + PADDLE_WIDTH / 2 / 4 / 2,
+            padFive.getY() + 1,
+            ball.getX(),
+            ball.getY()
+          );
+          ballChain.setColor("#A9A9A9");
+          ballChain.setLineWidth(3);
+          add(ballChain);
+
+          ballTwo = new Circle(BALL_RADIUS / 2 - 2);
+          ballTwo.setPosition(getWidth() / 2, getHeight() / 2);
+          ballTwo.setColor("#696969");
+          add(ballTwo);
+
+          txt = new Text(score, "30pt Arial");
+          txt.setPosition(0, getHeight() / 2);
+          txt.setColor("#DAA520");
+          add(txt);
+
+          startGame();
+          mouseMoveMethod(paddle);
+          keyDownMethod(triggerCheat);
+        }
+
+        function triggerCheat(e) {
+          if (score > 49 && score < 81) {
+            if (
+              ball.getX() != getWidth() / 2 &&
+              ball.getY() != getHeight() / 2
+            ) {
+              if (e.keyCode == Keyboard.LEFT) {
+                if (
+                  ball.getX() - ball.getRadius() > ball.getRadius() &&
+                  ball.getY() + ball.getRadius() > ball.getRadius()
+                ) {
+                  ball.setPosition(ball.getX() - 10, ball.getY());
+                  ballTwo.setPosition(ballTwo.getX() - 10, ballTwo.getY());
+                  ballChain.setEndpoint(ball.getX(), ball.getY());
+                }
+              } else if (e.keyCode == Keyboard.RIGHT) {
+                if (
+                  ball.getX() + ball.getRadius() <
+                    getWidth() - ball.getRadius() &&
+                  ball.getY() + ball.getRadius() > ball.getRadius()
+                ) {
+                  ball.setPosition(ball.getX() + 10, ball.getY());
+                  ballTwo.setPosition(ballTwo.getX() + 10, ballTwo.getY());
+                  ballChain.setEndpoint(ball.getX(), ball.getY());
+                }
+              }
+            }
+          }
+        }
+
+        function backgroundChange() {
+          if (score >= 0 && score <= 3) {
+            setBackgroundColor("#edf3f8");
+          } else if (score >= 4 && score <= 7) {
+            setBackgroundColor("#e7f5fe");
+          } else if (score >= 8 && score <= 11) {
+            setBackgroundColor("#ceebfd");
+          } else if (score >= 12 && score <= 15) {
+            setBackgroundColor("#b6e1fc");
+          } else if (score >= 16 && score <= 19) {
+            setBackgroundColor("#9dd7fb");
+          } else if (score >= 20 && score <= 23) {
+            setBackgroundColor("#87cefa");
+          } else if (score >= 24 && score <= 27) {
+            setBackgroundColor("#6cc3f9");
+          } else if (score >= 28 && score <= 31) {
+            setBackgroundColor("#54b9f8");
+          } else if (score >= 32 && score <= 35) {
+            setBackgroundColor("#3baff7");
+          } else if (score >= 36 && score <= 39) {
+            setBackgroundColor("#23a5f6");
+          } else if (score >= 40 && score <= 43) {
+            setBackgroundColor("#0a9bf5");
+          } else if (score >= 44 && score <= 47) {
+            setBackgroundColor("#098bdc");
+          } else if (score >= 48 && score <= 51) {
+            setBackgroundColor("#087cc4");
+          } else if (score >= 52 && score <= 55) {
+            setBackgroundColor("#076cab");
+          } else if (score >= 56 && score <= 59) {
+            setBackgroundColor("#065d93");
+          } else if (score >= 60 && score <= 63) {
+            setBackgroundColor("#054d7a");
+          } else if (score >= 64 && score <= 67) {
+            setBackgroundColor("#043e62");
+          } else if (score >= 68 && score <= 71) {
+            setBackgroundColor("#032e49");
+          } else if (score >= 72 && score <= 75) {
+            setBackgroundColor("#021f31");
+          } else if (score >= 76 && score <= 80) {
+            setBackgroundColor("#000000");
+          }
+        }
+
+        function startGame() {
+          setTimer(draw, 35);
+        }
+
+        function draw() {
+          brickDisappear();
+          checkWalls();
+          minusPoint();
+          ball.move(dx, dy);
+          ballTwo.move(dx, dy);
+          ballChain.setEndpoint(ball.getX(), ball.getY());
+        }
+
+        function draw2() {
+          brickDisappear();
+          checkWalls();
+          minusPoint();
+          ball.move(dx, dy);
+          ballTwo.move(dx, dy);
+          ballChain.setEndpoint(ball.getX(), ball.getY());
+        }
+
+        function draw3() {
+          brickDisappear();
+          checkWalls();
+          minusPoint();
+          ball.move(dx, dy);
+          ballTwo.move(dx, dy);
+          ballChain.setEndpoint(ball.getX(), ball.getY());
+        }
+
+        function checkWalls() {
+          // Bounce off right wall
+          /* Bounce off left wall*/
+          /* Bounce off bottom wall*/
+          /* Bounce off top wall*/
+          if (ball.getX() + ball.getRadius() > getWidth()) {
+            dx = -dx;
+          } else if (ball.getX() - ball.getRadius() < 0) {
+            dx = -dx;
+          } else if (
+            ball.getY() + ball.getRadius() >
+              getHeight() - PADDLE_HEIGHT_OFFSET &&
+            ball.getY() + ball.getRadius() <
+              getHeight() - PADDLE_HEIGHT_OFFSET_MINUS &&
+            ball.getX() >= pad.getX() - BALL_RADIUS &&
+            ball.getX() < pad.getX() + PADDLE_WIDTH + BALL_RADIUS
+          ) {
+            dy = -dy;
+          } else if (ball.getY() - ball.getRadius() < 0) {
+            dy = -dy;
+          }
+        }
+
+        function minusPoint() {
+          if (winCount >= 80) {
+            stopTimer(draw);
+            stopTimer(draw2);
+            stopTimer(draw3);
+
+            setTimer(winningDraw, 50);
+          } else if (ball.getY() + ball.getRadius() > getHeight()) {
+            score--;
+            txt.setText(score);
+            ball.setPosition(getWidth() / 2, getHeight() / 2);
+            ballTwo.setPosition(getWidth() / 2, getHeight() / 2);
+            counter++;
+            stopTimer(draw);
+            stopTimer(draw2);
+            stopTimer(draw3);
+            dx = Randomizer.nextInt(-6, 6);
+
+            if (counter == 1) {
+              mouseClickMethod(restartGame1);
+            } else if (counter == 2) {
+              mouseClickMethod(restartGame2);
+            } else if (counter >= 3) {
+              var txt2 = new Text("GAME OVER!", "40pt Arial");
+              txt2.setPosition(
+                getWidth() / 2 - txt2.getWidth() / 2,
+                getHeight() / 2
+              );
+              txt2.setColor(Color.RED);
+              add(txt2);
+            }
+          }
+        }
+
+        function winningDraw() {
+          drawCircle(
+            Randomizer.nextInt(1, 3),
+            Color.yellow,
+            Randomizer.nextInt(0, getWidth()),
+            Randomizer.nextInt(0, getHeight())
+          );
+
+          counterTwo++;
+
+          if (counterTwo == MAX_CIRCLES) {
+            stopTimer(winningDraw);
+          }
+        }
+
+        function drawCircle(radius, color, x, y) {
+          var circle = new Circle(radius);
+          circle.setColor(color);
+          circle.setPosition(x, y);
+          add(circle);
+
+          var txt3 = new Text("Stars are out!", "30pt Arial");
+          txt3.setPosition(
+            getWidth() / 2 - txt3.getWidth() / 2,
+            getHeight() / 2
+          );
+          txt3.setColor(Color.WHITE);
+          add(txt3);
+
+          var txt4 = new Text("That was a", "30pt Arial");
+          txt4.setPosition(
+            getWidth() / 2 - txt4.getWidth() / 2,
+            getHeight() / 2 + txt3.getHeight()
+          );
+          txt4.setColor(Color.WHITE);
+          add(txt4);
+
+          var txt5 = new Text("good day's work!", "30pt Arial");
+          txt5.setPosition(
+            getWidth() / 2 - txt5.getWidth() / 2,
+            getHeight() / 2 + 2 * txt3.getHeight()
+          );
+          txt5.setColor(Color.WHITE);
+          add(txt5);
+        }
+
+        function restartGame1(e) {
+          if (
+            e.getX() <= getWidth() &&
+            e.getY() <= getHeight() &&
+            counter < 3
+          ) {
+            stopTimer(draw);
+            stopTimer(draw2);
+            stopTimer(draw3);
+            setTimer(draw2, 35);
+          }
+        }
+
+        function restartGame2(e) {
+          if (
+            e.getX() <= getWidth() &&
+            e.getY() <= getHeight() &&
+            counter < 3
+          ) {
+            stopTimer(draw);
+            stopTimer(draw2);
+            stopTimer(draw3);
+            setTimer(draw3, 35);
+          }
+        }
+
+        function brickDisappear() {
+          elem = getElementAt(ball.getX(), ball.getY() - BALL_RADIUS);
+          if (
+            elem != null &&
+            elem.getY() <= BRICK_HEIGHT * 8 + BRICK_SPACING * 9
+          ) {
+            remove(elem);
+            winCount++;
+            dy = -dy;
+            // println(winCount);
+
+            score++;
+            txt.setText(score);
+            backgroundChange();
+          }
+        }
+
+        function paddle(e) {
+          if (
+            e.getX() > PADDLE_WIDTH_DIVIDED - BRICK_SPACING &&
+            e.getX() < getWidth() - PADDLE_WIDTH_DIVIDED + BRICK_SPACING
+          ) {
+            pad.setPosition(
+              e.getX() - PADDLE_WIDTH_DIVIDED,
+              getHeight() - PADDLE_HEIGHT - PADDLE_OFFSET
+            );
+            padTwo.setPosition(
+              e.getX() - PADDLE_WIDTH_DIVIDED / 2,
+              getHeight() - PADDLE_HEIGHT - PADDLE_OFFSET - PADDLE_HEIGHT
+            );
+            padFour.setPosition(
+              e.getX() - PADDLE_WIDTH_DIVIDED / 2 + 6.5,
+              getHeight() - PADDLE_HEIGHT - PADDLE_OFFSET - PADDLE_HEIGHT
+            );
+            padFive.setPosition(
+              e.getX() - PADDLE_WIDTH / 2 / 4 / 2,
+              getHeight() -
+                PADDLE_HEIGHT -
+                PADDLE_OFFSET -
+                PADDLE_HEIGHT -
+                PADDLE_HEIGHT * 2
+            );
+            ballChain.setPosition(e.getX(), padFive.getY() + 1);
+          }
+        }
+
+        /**************************************/
+
+        /*This program creates a wall of bricks
+         *alternating between the colors red, orange,
+         *green, and blue for every 2 rows.*/
+
+        /* Constants for bricks */
+        var NUM_ROWS = 8;
+        var BRICK_TOP_OFFSET = 10;
+        var BRICK_SPACING = 2;
+        var NUM_BRICKS_PER_ROW = 10;
+        var BRICK_HEIGHT = 10;
+        var SPACE_FOR_BRICKS =
+          getWidth() - (NUM_BRICKS_PER_ROW + 1) * BRICK_SPACING;
+        var BRICK_WIDTH = SPACE_FOR_BRICKS / NUM_BRICKS_PER_ROW;
+        var rect;
+        var BRICK_WIDTH_DIV = BRICK_WIDTH / 2;
+
+        var xPosition = BRICK_SPACING;
+        var yPosition = BRICK_TOP_OFFSET;
+
+        function createBricks(color) {
+          for (var i = 0; i < 80; i++) {
+            rect = new Rectangle(BRICK_WIDTH, BRICK_HEIGHT);
+            rect.setPosition(xPosition, yPosition);
+            if (randomCheat == 10) {
+              rect.setColor("#FFC42E");
+            } else {
+              rect.setColor(color);
+              rect.setBorderColor(Color.GRAY);
+              rect.setBorderWidth(1);
+            }
+            add(rect);
+
+            xPosition += BRICK_WIDTH;
+            xPosition += BRICK_SPACING;
+
+            color = Color.randomRed();
+
+            if (xPosition >= getWidth()) {
+              yPosition += BRICK_SPACING;
+              yPosition += BRICK_HEIGHT;
+              xPosition = BRICK_SPACING;
+            }
+
+            randomCheat = Randomizer.nextInt(1, 20);
+          }
+        }
+
+        if (typeof start === "function") {
+          start();
+        }
+      };
+    </script>
+  </body>
+</html>
